@@ -18,13 +18,12 @@ const userSchema = new Schema({
         trime: true,
         index: true
     },
-    flag: {
+    isGmailLogin: {
         type: Boolean,
         default: false
     },
     password: {
-        type: String,
-        required: [true, 'Password is required']
+        type: String
     },
     refreshToken: {
         type: String
