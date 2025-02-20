@@ -11,5 +11,6 @@ router.route("/change-password").post(authUser, changePassword);
 router.route("/current-user").post(authUser, getCurrentUser);
 router.route("/forget-password").post(forgetPassword);
 router.route("/reset-password/:token").post(resetPassowrd);
+// router.route("/save-data").post(authUser);
 
 export default router;
