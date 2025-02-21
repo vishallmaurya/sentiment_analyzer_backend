@@ -9,27 +9,29 @@ import crypto from "crypto";
 const registerUser = asyncHandler(async (req, res) => {
     try {
         const { email, password, isGmailLogin } = req.body;
-    
-        if ((email.trim() === "") || (password.trim() === "" && (typeof(isGmailLogin) !== "boolean" || isGmailLogin === false))) {
+        
+        if ((email?.trim() === "") || (password?.trim() === "" && (typeof(isGmailLogin) !== "boolean" || isGmailLogin === false))) {
             throw new ApiError(400, "All fields are mandatory");
         }
     
-        const user = await User.findOne({ email });
+        let user = await User.findOne({ email });
     
-        if (user) {
-            if (password.trim() !== "" && user.password !== null) {
-                const ispwdCorrect = await user.isPasswordCorrect(password);
-                if (!ispwdCorrect) {
-                    throw new ApiError(400, "Wrong password");
+        if (user) {        
+            if (password !== undefined && password.trim() !== "") {
+                if (user.password === null) {
+                    user.password = password;
+                    await user.save({ validateBeforeSave: false });
+                } else {
+                    const ispwdCorrect = await user.isPasswordCorrect(password);
+                    if (!ispwdCorrect) {    
+                        throw new ApiError(400, "Wrong password");
+                    }
                 }
-            } else if (password.trim() !== "") {
-                user.password = password;
-                await user.save({ validateBeforeSave: false });
-            }
+            } 
         } else {
             const isGmail = Boolean(isGmailLogin);
             const obj = isGmail ? { email, isGmailLogin: true } : { email, password };
-            await User.create(obj);
+            user = await User.create(obj);
         }
     
         let accesstoken, refreshToken;
@@ -50,8 +52,8 @@ const registerUser = asyncHandler(async (req, res) => {
         
         return res.status(200)
             .cookie("accessToken", accesstoken, options)
-            .cookie("refreshToken", refreshToken, options).
-            json(
+            .cookie("refreshToken", refreshToken, options)
+            .json(
             new ApiResponse(
                 200,
                 {   

@@ -4,12 +4,6 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 
 const userSchema = new Schema({
-    username: {
-        type: String,
-        required: true,
-        lowercase: true,
-        trim: true
-    },
     email: {
         type: String,
         required: true,
@@ -46,7 +40,7 @@ userSchema.pre("save", async function (next) {
 })
 
 userSchema.methods.isPasswordCorrect = async function (password) {
-    return await bcrypt.compare(String.password, this.password);
+    return await bcrypt.compare(password, this.password);
 }
 
 userSchema.methods.generatePasswordResetToken = function () {
