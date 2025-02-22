@@ -18,16 +18,18 @@ const registerUser = asyncHandler(async (req, res) => {
     
         if (user) {        
             if (password !== undefined && password.trim() !== "") {
-                if (user.password === null) {
+                if (user.password === undefined) {
                     user.password = password;
                     await user.save({ validateBeforeSave: false });
-                } else {
+                } else {                    
                     const ispwdCorrect = await user.isPasswordCorrect(password);
                     if (!ispwdCorrect) {    
                         throw new ApiError(400, "Wrong password");
                     }
                 }
-            } 
+            } else {
+                user.isGmailLogin = isGmailLogin;
+            }
         } else {
             const isGmail = Boolean(isGmailLogin);
             const obj = isGmail ? { email, isGmailLogin: true } : { email, password };
