@@ -12,7 +12,7 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
             throw new ApiError(400, "Fields are mandatory");
         }
 
-        const url = process.env.SENTIMENT_API_URL + "/" + process.env.SENTIEMTN_ENDPOINT;
+        const url = process.env.SENTIMENT_API_URL + "/" + process.env.SENTIMENT_ENDPOINT;
 
         const response = await fetch(url, {
             method: "POST",
