@@ -49,7 +49,8 @@ const registerUser = asyncHandler(async (req, res) => {
     
         const options = {
             httpOnly: true,
-            secure: true
+            secure: true,
+            sameSite: "None"
         }
         
         return res.status(200)
@@ -117,10 +118,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         if (!user) {
             throw new ApiError(401, "Invalid refresh Token");
         }      
-        
-        console.log(user.refreshToken);
-        console.log(incomingRefreshToken);
-        
 
         if (user?.refreshToken !== incomingRefreshToken) {
             throw new ApiError(401, "Refresh token is expired or used");
@@ -190,7 +187,7 @@ const changePassword = asyncHandler(async (req, res) => {
 
 
 const getCurrentUser = asyncHandler(async (req, res) => {
-    return res.status(200)
+    return await res.status(200)
     .json(new ApiResponse(
         200,
         req.user,
