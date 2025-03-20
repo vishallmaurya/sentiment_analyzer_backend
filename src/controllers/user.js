@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User } from "../models/users.js";
+import { Data } from "../models/data.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../utils/sendEmail.js";
 import crypto from "crypto";
@@ -254,4 +255,20 @@ const resetPassowrd = asyncHandler(async (req, res) => {
     
 })
 
-export { registerUser, logoutUser, refreshAccessToken, changePassword, getCurrentUser, forgetPassword, resetPassowrd };
+const getTweetsHistory = asyncHandler(async (req, res) => {
+    try {
+        const user_id = req.user._id;
+        const tweets = await Data.find(user_id);
+
+        res.status(200).json(
+            new ApiResponse(200,
+                tweets,
+                "Tweets sent successfully" 
+            )
+        )
+    } catch (error) {
+        throw new ApiError(500, "Error occurred during fetching tweets");
+    }
+})
+
+export { registerUser, logoutUser, refreshAccessToken, changePassword, getCurrentUser, forgetPassword, resetPassowrd, getTweetsHistory };
