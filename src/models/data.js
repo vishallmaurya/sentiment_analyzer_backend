@@ -1,16 +1,15 @@
 import mongoose, { Schema } from "mongoose";
 
 const dataSchema = new Schema({
-    sentence: {
+    tweet: {
         type: String, 
         required: true
     },
     user_id: {
         type: Schema.Types.ObjectId,
-        ref: "User",
-        required: true
+        ref: "User"
     },
-    class: {
+    predicted_class: {
         type: Number,
         required: true
     }
