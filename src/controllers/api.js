@@ -20,7 +20,6 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
                 user_id = user;
             }
         }
-        console.log(tweet.length);
         
         if(tweet?.trim() === "") {
             throw new ApiError(400, "Fields are mandatory");
