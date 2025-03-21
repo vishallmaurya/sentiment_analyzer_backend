@@ -61,7 +61,7 @@ const registerUser = asyncHandler(async (req, res) => {
             new ApiResponse(
                 200,
                 {   
-                    loggedInUser: user,
+                    user,
                     refreshToken,
                     accesstoken
                 },
@@ -188,10 +188,11 @@ const changePassword = asyncHandler(async (req, res) => {
 
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+    const user = req.user;
     return await res.status(200)
     .json(new ApiResponse(
         200,
-        req.user,
+        {user},
         "User fetched successfully"
     )) 
 })
@@ -258,7 +259,7 @@ const resetPassowrd = asyncHandler(async (req, res) => {
 const getTweetsHistory = asyncHandler(async (req, res) => {
     try {
         const user_id = req.user._id;
-        const tweets = await Data.find(user_id);
+        const tweets = await Data.find({user_id}).select("tweet predicted_class createdAt");        
 
         res.status(200).json(
             new ApiResponse(200,
