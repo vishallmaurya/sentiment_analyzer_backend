@@ -214,7 +214,7 @@ const forgetPassword = asyncHandler(async (req, res) => {
     const resetToken = user.generatePasswordResetToken();
     await user.save({ validateBeforeSave: false });
 
-    const resetUrl = `${req.protocol}://${req.get("host")}/users/reset-password/${resetToken}`;
+    const resetUrl = `${req.protocol}://localhost:5173/reset-password/${resetToken}`;
     const message = `You requested a password reset. Please click on this link to reset your password: \n\n ${resetUrl} \n\n If you did not request this, please ignore this email.`;
 
     await sendEmail(email, "RESET YOUR PASSWORD", message);
@@ -225,9 +225,10 @@ const forgetPassword = asyncHandler(async (req, res) => {
 
 const resetPassowrd = asyncHandler(async (req, res) => {
     const { token } = req.params;
-    const { newPassword } = req.body;
+    const { password } = req.body;
+    
 
-    if (!newPassword?.trim()) {
+    if (!password?.trim()) {
         throw new ApiError(400, "New Password is required");
     }
 
@@ -242,7 +243,7 @@ const resetPassowrd = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid or expired token");
     }
 
-    user.password = newPassword;
+    user.password = password;
     user.passwordResetExpires = undefined;
     user.passwordResetToken = undefined;
     await user.save({ validateBeforeSave: false });
