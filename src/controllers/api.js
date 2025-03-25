@@ -1,10 +1,10 @@
+import axios from "axios";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Data } from "../models/data.js";
 import { User } from "../models/users.js";
 import jwt from "jsonwebtoken";
-
 
 const predictTweetSentiment = asyncHandler(async (req, res) => {
     try {
@@ -23,36 +23,27 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
             }
         }
         
-        if(tweet?.trim() === "") {
+        if (tweet?.trim() === "") {
             throw new ApiError(400, "Fields are mandatory");
         }
 
         const url = process.env.SENTIMENT_API_URL + "/" + process.env.SENTIMENT_ENDPOINT;
         console.log("Calling ML API:", url);
 
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ tweet }),
-        });
+        // ✅ Using Axios
+        const response = await axios.post(url, { tweet }, {withCredentials: true});
 
-        const data = await response.json();
+        console.log("ML API Response:", response.data);
 
-        if (!response.ok) {
-            console.error("ML Model Error:", response.status, await response.text());
-            throw new ApiError(400, "ML model failed");
-        }
-        
-        const updated_data = { ...data, user_id };
+        const updated_data = { ...response.data, user_id };
         await Data.create(updated_data);
-        
-        return res.status(200).
-            json(new ApiResponse(200, data, "Get the data successfully"));
+
+        return res.status(200).json(new ApiResponse(200, response.data, "Get the data successfully"));
+
     } catch (error) {
-        throw new ApiError(400, "Error occur during getting output");
+        console.error("Error from ML API:", error.response?.data || error.message);
+        throw new ApiError(400, `ML Model Error: ${error.response?.data?.message || error.message}`);
     }
-})
+});
 
 export { predictTweetSentiment };
