@@ -9,7 +9,6 @@ import jwt from "jsonwebtoken";
 const predictTweetSentiment = asyncHandler(async (req, res) => {
     try {
         const { tweet } = req.body;
-        console.log("Incoming request body:", req.body);
 
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
         let user_id;
@@ -28,13 +27,10 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
         }
 
         const url = process.env.SENTIMENT_API_URL + "/" + process.env.SENTIMENT_ENDPOINT;
-        console.log("Calling ML API:", url);
+        
+        const response = await axios.post(url, { tweet }, { withCredentials: true });
 
-        // ✅ Using Axios
-        const response = await axios.post(url, { tweet }, {withCredentials: true});
-
-        console.log("ML API Response:", response.data);
-
+        
         const updated_data = { ...response.data, user_id };
         await Data.create(updated_data);
 
