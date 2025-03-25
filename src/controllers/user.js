@@ -93,7 +93,7 @@ const logoutUser = asyncHandler(async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: "None",
-            domain: process.env.SENTIMENT_API_URL,
+            domain: process.env.COOKIE_DOMAIN,
         }
     
         return res.status(200).
