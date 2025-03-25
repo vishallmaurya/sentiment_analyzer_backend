@@ -42,7 +42,7 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
         return res.status(200).
             json(new ApiResponse(200, data, "Get the data successfully"));
     } catch (error) {
-        throw new ApiError(400, error?.message || "Error occur during getting output");
+        throw new ApiError(400, "Error occur during getting output");
     }
 })
 
