@@ -9,6 +9,8 @@ import jwt from "jsonwebtoken";
 const predictTweetSentiment = asyncHandler(async (req, res) => {
     try {
         const { tweet } = req.body;
+        console.log("Incoming request body:", req.body);
+
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
         let user_id;
 
@@ -26,6 +28,7 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
         }
 
         const url = process.env.SENTIMENT_API_URL + "/" + process.env.SENTIMENT_ENDPOINT;
+        console.log("Calling ML API:", url);
 
         const response = await fetch(url, {
             method: "POST",
@@ -36,6 +39,12 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
         });
 
         const data = await response.json();
+
+        if (!response.ok) {
+            console.error("ML Model Error:", response.status, await response.text());
+            throw new ApiError(400, "ML model failed");
+        }
+        
         const updated_data = { ...data, user_id };
         await Data.create(updated_data);
         
