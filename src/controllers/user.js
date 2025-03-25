@@ -91,7 +91,9 @@ const logoutUser = asyncHandler(async (req, res) => {
     
         const options = {
             httpOnly: true,
-            secure: true
+            secure: true,
+            sameSite: "None",
+            domain: process.env.SENTIMENT_API_URL,
         }
     
         return res.status(200).
