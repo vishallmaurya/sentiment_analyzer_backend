@@ -25,12 +25,9 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
         if (tweet?.trim() === "") {
             throw new ApiError(400, "Fields are mandatory");
         }
-        console.log("Tweet:  ", tweet);
         
         const url = process.env.SENTIMENT_API_URL + "/" + process.env.SENTIMENT_ENDPOINT;
-        console.log( "Url: ", url);
         const response = await axios.post(url, { tweet }, { withCredentials: true });
-        console.log("Response: ", response);
         
         const updated_data = { ...response.data, user_id };
         await Data.create(updated_data);
