@@ -27,9 +27,9 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
         }
 
         const url = process.env.SENTIMENT_API_URL + "/" + process.env.SENTIMENT_ENDPOINT;
-        
+        console.log(url);
         const response = await axios.post(url, { tweet }, { withCredentials: true });
-
+        console.log(response);
         
         const updated_data = { ...response.data, user_id };
         await Data.create(updated_data);
