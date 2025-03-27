@@ -97,4 +97,31 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
     }
 });
 
-export { predictTweetSentiment };
+
+const predictTaskStatus = asyncHandler(async (req, res) => {
+    try {
+        const response = await axios.get(
+            `${process.env.SENTIMENT_API_URL}/task-status/${req.params.taskId}`,
+            { 
+                withCredentials: true,
+                timeout: 5000 
+            }
+        );
+        
+        res.status(200).json(new ApiResponse(
+            200, 
+            response.data, 
+            "Task status checked"
+        ));
+        
+    } catch (error) {
+        console.error("Status check error:", error.response?.data || error.message);
+        throw new ApiError(
+            error.response?.status || 500,
+            error.response?.data?.message || "Failed to check task status"
+        );
+    }
+});
+
+
+export { predictTweetSentiment, predictTaskStatus };
