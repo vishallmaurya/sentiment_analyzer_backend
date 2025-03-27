@@ -216,7 +216,7 @@ const forgetPassword = asyncHandler(async (req, res) => {
     const resetToken = user.generatePasswordResetToken();
     await user.save({ validateBeforeSave: false });
 
-    const resetUrl = `${req.protocol}://localhost:5173/reset-password/${resetToken}`;
+    const resetUrl = `${req.protocol}://sentiment-analysis-rosy-omega.vercel.app/reset-password/${resetToken}`;
     const message = `You requested a password reset. Please click on this link to reset your password: \n\n ${resetUrl} \n\n If you did not request this, please ignore this email.`;
 
     await sendEmail(email, "RESET YOUR PASSWORD", message);
