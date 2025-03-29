@@ -66,7 +66,7 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
         const taskId = initResponse.data.task_id;
         let result;
         let attempts = 0;
-        const maxAttempts = 12; // 1 minute total (5s intervals)
+        const maxAttempts = 12; // 
         
         // Poll for results
         while (attempts < maxAttempts) {
@@ -104,7 +104,7 @@ const predictTaskStatus = asyncHandler(async (req, res) => {
             `${process.env.SENTIMENT_API_URL}/task-status/${req.params.taskId}`,
             { 
                 withCredentials: true,
-                timeout: 5000 
+                timeout: 100000 
             }
         );
         
