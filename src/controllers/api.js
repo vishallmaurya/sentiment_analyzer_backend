@@ -60,7 +60,7 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
         const initResponse = await axios.post(
             process.env.SENTIMENT_API_URL + "/predict",
             { tweet },
-            { withCredentials: true, timeout: 10000 }
+            { withCredentials: true, timeout: 100000 }
         );
         
         const taskId = initResponse.data.task_id;
