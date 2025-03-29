@@ -71,7 +71,7 @@ const predictTweetSentiment = asyncHandler(async (req, res) => {
         // Poll for results
         while (attempts < maxAttempts) {
             attempts++;
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            await new Promise(resolve => setTimeout(resolve, 100000));
             
             const statusResponse = await axios.get(
                 `${process.env.SENTIMENT_API_URL}/task-status/${taskId}`,
