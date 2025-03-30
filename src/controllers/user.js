@@ -6,6 +6,7 @@ import { Data } from "../models/data.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../utils/sendEmail.js";
 import crypto from "crypto";
+import { setCookieDomain } from "../utils/setCookieDomain.js";
 
 const registerUser = asyncHandler(async (req, res) => {
     try {
@@ -50,8 +51,11 @@ const registerUser = asyncHandler(async (req, res) => {
     
         const options = {
             httpOnly: true,
-            secure: true,
-            sameSite: "None"
+            // secure: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "None",
+            domain: setCookieDomain(req),
+            path:"/",
         }
         
         return res.status(200)
