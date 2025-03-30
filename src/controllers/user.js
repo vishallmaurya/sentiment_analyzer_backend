@@ -51,11 +51,11 @@ const registerUser = asyncHandler(async (req, res) => {
     
         const options = {
             httpOnly: true,
-            // secure: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: true,
+            // secure: process.env.NODE_ENV === "production",
             sameSite: "None",
-            domain: setCookieDomain(req),
-            path:"/",
+            // domain: setCookieDomain(req),
+            // path:"/",
         }
         
         return res.status(200)
@@ -96,8 +96,10 @@ const logoutUser = asyncHandler(async (req, res) => {
         const options = {
             httpOnly: true,
             secure: true,
+            // secure: process.env.NODE_ENV === "production",
             sameSite: "None",
-            domain: process.env.COOKIE_DOMAIN,
+            // domain: setCookieDomain(req),
+            // path:"/",
         }
     
         return res.status(200).
@@ -141,8 +143,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     
         const options = {
             httpOnly: true,
-            secure: true
+            secure: true,
+            // secure: process.env.NODE_ENV === "production",
+            sameSite: "None",
+            // domain: setCookieDomain(req),
+            // path:"/",
         }
+        
     
         return res.status(200).
             cookie("accessToken", newaccessToken, options).
