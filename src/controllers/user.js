@@ -51,9 +51,9 @@ const registerUser = asyncHandler(async (req, res) => {
     
         const options = {
             httpOnly: true,
-            secure: true,
+            secure: false,
             // secure: process.env.NODE_ENV === "production",
-            sameSite: "None",
+//            sameSite: "None",
             // domain: setCookieDomain(req),
             // path:"/",
         }
@@ -95,9 +95,9 @@ const logoutUser = asyncHandler(async (req, res) => {
     
         const options = {
             httpOnly: true,
-            secure: true,
+            secure: false,
             // secure: process.env.NODE_ENV === "production",
-            sameSite: "None",
+//            sameSite: "None",
             // domain: setCookieDomain(req),
             // path:"/",
         }
@@ -143,9 +143,9 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     
         const options = {
             httpOnly: true,
-            secure: true,
+            secure: false,
             // secure: process.env.NODE_ENV === "production",
-            sameSite: "None",
+//            sameSite: "None",
             // domain: setCookieDomain(req),
             // path:"/",
         }
