@@ -12,6 +12,10 @@ const dataSchema = new Schema({
     predicted_class: {
         type: Number,
         required: true
+    },
+    used_in_training: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
