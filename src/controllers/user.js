@@ -9,194 +9,166 @@ import crypto from "crypto";
 import { setCookieDomain } from "../utils/setCookieDomain.js";
 
 const registerUser = asyncHandler(async (req, res) => {
-    try {
-        const { email, password, isGmailLogin } = req.body;
-        
-        if ((email?.trim() === "") || (password?.trim() === "" && (typeof(isGmailLogin) !== "boolean" || isGmailLogin === false))) {
-            throw new ApiError(400, "All fields are mandatory");
-        }
+    const { email, password, isGmailLogin } = req.body;
     
-        let user = await User.findOne({ email });
-    
-        if (user) {        
-            if (password !== undefined && password.trim() !== "") {
-                if (user.password === undefined) {
-                    user.password = password;
-                    await user.save({ validateBeforeSave: false });
-                } else {                    
-                    const ispwdCorrect = await user.isPasswordCorrect(password);
-                    if (!ispwdCorrect) {    
-                        throw new ApiError(400, "Wrong password");
-                    }
+    if ((email?.trim() === "") || (password?.trim() === "" && (typeof(isGmailLogin) !== "boolean" || isGmailLogin === false))) {
+        throw new ApiError(400, "All fields are mandatory");
+    }
+
+    let user = await User.findOne({ email });
+
+    if (user) {        
+        if (password !== undefined && password.trim() !== "") {
+            if (user.password === undefined) {
+                user.password = password;
+                await user.save({ validateBeforeSave: false });
+            } else {                    
+                const ispwdCorrect = await user.isPasswordCorrect(password);
+                if (!ispwdCorrect) {    
+                    throw new ApiError(400, "Wrong password");
                 }
-            } else {
-                user.isGmailLogin = isGmailLogin;
             }
         } else {
-            const isGmail = Boolean(isGmailLogin);
-            const obj = isGmail ? { email, isGmailLogin: true } : { email, password };
-            user = await User.create(obj);
+            user.isGmailLogin = isGmailLogin;
         }
-    
-        let accesstoken, refreshToken;
-        try {
-            accesstoken = await user.generateAccessToken();
-            refreshToken = await user.generateRefreshToken();
-    
-            user.refreshToken = refreshToken;
-            user.save({ validateBeforeSave: false });
-        } catch (error) {
-            throw new ApiError("Error in creating tokens");
-        }
-    
-        const options = {
-            httpOnly: true,
-            secure: false,
-            // secure: process.env.NODE_ENV === "production",
-            // sameSite: "None",
-            // domain: setCookieDomain(req),
-            // path:"/",
-        }
-        
-        return res.status(200)
-            .cookie("accessToken", accesstoken, options)
-            .cookie("refreshToken", refreshToken, options)
-            .json(
-            new ApiResponse(
-                200,
-                {   
-                    user,
-                    refreshToken,
-                    accesstoken
-                },
-                "User logged in!!"
-            )
-        )
-    } catch (error) {
-        throw new ApiError(401, error?.message || "Error occur during login");
+    } else {
+        const isGmail = Boolean(isGmailLogin);
+        const obj = isGmail ? { email, isGmailLogin: true } : { email, password };
+        user = await User.create(obj);
     }
+
+    let accesstoken, refreshToken;
+    try {
+        accesstoken = await user.generateAccessToken();
+        refreshToken = await user.generateRefreshToken();
+
+        user.refreshToken = refreshToken;
+        user.save({ validateBeforeSave: false });
+    } catch (error) {
+        throw new ApiError("Error in creating tokens");
+    }
+
+    const options = {
+        httpOnly: true,
+        secure: false
+    }
+    
+    return res.status(200)
+        .cookie("accessToken", accesstoken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+        new ApiResponse(
+            200,
+            {   
+                user,
+                refreshToken,
+                accesstoken
+            },
+            "User logged in!!"
+        )
+    )
 })
 
 
 
 const logoutUser = asyncHandler(async (req, res) => {
-    try {
-        await User.findByIdAndUpdate(
-            req.user._id,
-            {
-                $set: {
-                    refreshToken: undefined 
-                }
-            },
-            {
-                new: true
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                refreshToken: undefined 
             }
-        )
-    
-        const options = {
-            httpOnly: true,
-            secure: false,
-            // secure: process.env.NODE_ENV === "production",
-            // sameSite: "None",
-            // domain: setCookieDomain(req),
-            // path:"/",
+        },
+        {
+            new: true
         }
-    
-        return res.status(200).
-            clearCookie("accessToken", options).
-            clearCookie("refreshToken", options).
-            json(new ApiResponse(200, {}, "User logged Out successfully!!"))
-    } catch (error) {
-        throw new ApiError(400, error?.message || "Error occur during login");
+    )
+
+    const options = {
+        httpOnly: true,
+        secure: false,
     }
+
+    return res.status(200).
+        clearCookie("accessToken", options).
+        clearCookie("refreshToken", options).
+        json(new ApiResponse(200, {}, "User logged Out successfully!!"))
 })
 
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    try {
-        const incomingRefreshToken = req.cookies?.refreshToken || req.body.refreshToken;
-    
-        if (!incomingRefreshToken) {
-            throw new ApiError(401, "Unauthorized request");
-        }
-    
-        const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
-    
-        const user = await User.findById(decodedToken?._id);
-      
-        if (!user) {
-            throw new ApiError(401, "Invalid refresh Token");
-        }      
+    const incomingRefreshToken = req.cookies?.refreshToken || req.body.refreshToken;
 
-        if (user?.refreshToken !== incomingRefreshToken) {
-            throw new ApiError(401, "Refresh token is expired or used");
-        }
-    
-        let newaccessToken, newrefreshToken
-    
-        try {
-            newaccessToken = await user.generateAccessToken();
-            newrefreshToken = await user.generateRefreshToken();
-        } catch (error) {
-            throw new ApiError("Error in creating tokens");
-        }
-    
-        const options = {
-            httpOnly: true,
-            secure: false,
-            // secure: process.env.NODE_ENV === "production",
-            // sameSite: "None",
-            // domain: setCookieDomain(req),
-            // path:"/",
-        }
-        
-    
-        return res.status(200).
-            cookie("accessToken", newaccessToken, options).
-            cookie("refreshToken", newrefreshToken, options).
-            json(new ApiResponse(
-                200,
-                {
-                    accessToken: newaccessToken,
-                    refreshToken: newrefreshToken
-                },
-                "Access Token Refreshed"
-            ));
-    } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid refresh Token")
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "Unauthorized request");
     }
+
+    const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+    const user = await User.findById(decodedToken?._id);
+    
+    if (!user) {
+        throw new ApiError(401, "Invalid refresh Token");
+    }      
+
+    if (user?.refreshToken !== incomingRefreshToken) {
+        throw new ApiError(401, "Refresh token is expired or used");
+    }
+
+    let newaccessToken, newrefreshToken
+
+    try {
+        newaccessToken = await user.generateAccessToken();
+        newrefreshToken = await user.generateRefreshToken();
+    } catch (error) {
+        throw new ApiError("Error in creating tokens");
+    }
+
+    const options = {
+        httpOnly: true,
+        secure: false,
+    }
+    
+
+    return res.status(200).
+        cookie("accessToken", newaccessToken, options).
+        cookie("refreshToken", newrefreshToken, options).
+        json(new ApiResponse(
+            200,
+            {
+                accessToken: newaccessToken,
+                refreshToken: newrefreshToken
+            },
+            "Access Token Refreshed"
+    ));
 })
 
 
 
 const changePassword = asyncHandler(async (req, res) => {
-    try {
-        const user = await User.findById(req.user._id);
-        const { oldPassword, newPassword } = req.body;
-        
-        if ([oldPassword, newPassword].some((field) => field?.trim() === "")) {
-            throw new ApiError(400, "All fields are required");
-        }
-        
-        const isPwdCorrect = user.isPasswordCorrect(oldPassword);
-
-        if (!isPwdCorrect) {
-            throw new ApiError(401, "Entered password is incorrect");
-        }
-
-        user.password = newPassword;
-        await user.save({ validateBeforeSave: false });
-
-        res.status(200).json(
-            new ApiResponse(
-                200,
-                {},
-                "Password changed successfully"
-            )
-        )
-    } catch (error) {
-        throw new ApiError(400, error?.message || "Error in changing the password");
+    const user = await User.findById(req.user._id);
+    const { oldPassword, newPassword } = req.body;
+    
+    if ([oldPassword, newPassword].some((field) => field?.trim() === "")) {
+        throw new ApiError(400, "All fields are required");
     }
+    
+    const isPwdCorrect = user.isPasswordCorrect(oldPassword);
+
+    if (!isPwdCorrect) {
+        throw new ApiError(401, "Entered password is incorrect");
+    }
+
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            {},
+            "Password changed successfully"
+        )
+    )
 })
 
 
@@ -226,7 +198,7 @@ const forgetPassword = asyncHandler(async (req, res) => {
 
     const resetToken = user.generatePasswordResetToken();
     await user.save({ validateBeforeSave: false });
-
+    // to be change
     const resetUrl = `${req.protocol}://sentiment-analysis-rosy-omega.vercel.app/reset-password/${resetToken}`;
     const message = `You requested a password reset. Please click on this link to reset your password: \n\n ${resetUrl} \n\n If you did not request this, please ignore this email.`;
 
@@ -271,19 +243,15 @@ const resetPassowrd = asyncHandler(async (req, res) => {
 })
 
 const getTweetsHistory = asyncHandler(async (req, res) => {
-    try {
-        const user_id = req.user._id;
-        const tweets = await Data.find({user_id}).select("tweet predicted_class createdAt");        
+    const user_id = req.user._id;
+    const tweets = await Data.find({user_id}).select("tweet predicted_class createdAt");        
 
-        res.status(200).json(
-            new ApiResponse(200,
-                tweets,
-                "Tweets sent successfully" 
-            )
+    res.status(200).json(
+        new ApiResponse(200,
+            tweets,
+            "Tweets sent successfully" 
         )
-    } catch (error) {
-        throw new ApiError(500, "Error occurred during fetching tweets");
-    }
+    )
 })
 
 export { registerUser, logoutUser, refreshAccessToken, changePassword, getCurrentUser, forgetPassword, resetPassowrd, getTweetsHistory };
